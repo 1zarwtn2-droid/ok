@@ -11,13 +11,14 @@ import { HeroBanner } from './components/HeroBanner';
 import { CatalogSection } from './components/CatalogSection';
 import { LiveTrackingSection } from './components/LiveTrackingSection';
 import { ReviewsSection } from './components/ReviewsSection';
-import { AdminDashboard } from './components/AdminDashboard';
+import { AdminConsole } from './components/AdminConsole';
 import { BookingModal } from './components/BookingModal';
 import { DigitalReceiptModal } from './components/DigitalReceiptModal';
 import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { FooterSection } from './components/FooterSection';
 import { ShoeDiagnosticModal } from './components/ShoeDiagnosticModal';
 import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
+import { StaffAccessModal } from './components/StaffAccessModal';
 
 export default function App() {
   // Persistence with localStorage
@@ -59,10 +60,11 @@ export default function App() {
     localStorage.setItem('shoelab_reviews', JSON.stringify(reviews));
   }, [reviews]);
 
-  // View state: 'customer' or 'admin'
+  // Clean Role & Portal Separation: 'customer' vs 'admin'
   const [currentView, setCurrentView] = useState<'customer' | 'admin'>('customer');
+  const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
 
-  // Modals
+  // Customer Modals
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
   const [preselectedServiceId, setPreselectedServiceId] = useState<string | undefined>(undefined);
@@ -137,7 +139,7 @@ export default function App() {
         title: stageTitle,
         description: stageDesc,
         timestamp: formattedNow,
-        updatedBy: 'Admin Workshop Studio'
+        updatedBy: 'Bima Santoso (Head Master)'
       };
 
       const newWaLog = {
@@ -164,8 +166,11 @@ export default function App() {
     setReviews(prev => [newRev, ...prev]);
   };
 
+  const handleAddReviewReply = (reviewId: string, reply: string) => {
+    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, replyFromAdmin: reply } : r));
+  };
+
   const handleBuyProduct = (product: CareProductItem) => {
-    // Direct WhatsApp Quick Order for physical products
     const text = encodeURIComponent(
       `Halo CS ShoeLab Studio, saya ingin memesan produk perawatan sepatu:\n\n• Produk: *${product.name}*\n• Harga: *Rp ${product.price.toLocaleString('id-ID')}*\n• Spesifikasi: *${product.volumeOrSpec}*\n\nMohon info ketersediaan stok & pengiriman ke alamat saya. Terima kasih!`
     );
@@ -174,19 +179,22 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans selection:bg-amber-400 selection:text-neutral-950">
-      {/* Top Navigation */}
-      <Navbar
-        currentView={currentView}
-        onSwitchView={setCurrentView}
-        onOpenBooking={() => handleOpenBooking()}
-        activeOrdersCount={activeOrdersCount}
-        onQuickTrack={handleQuickTrack}
-      />
+      {/* 
+        ====================================================================
+        MODE PELANGGAN (CUSTOMER PORTAL)
+        ====================================================================
+      */}
+      {currentView === 'customer' ? (
+        <>
+          {/* Customer Navigation Bar */}
+          <Navbar
+            onOpenBooking={() => handleOpenBooking()}
+            activeOrdersCount={activeOrdersCount}
+            onQuickTrack={handleQuickTrack}
+            onRequestAdminAccess={() => setIsStaffModalOpen(true)}
+          />
 
-      {/* Main Content Area based on View Mode */}
-      <main className="flex-1">
-        {currentView === 'customer' ? (
-          <>
+          <main className="flex-1">
             {/* Hero Section */}
             <HeroBanner
               onOpenBooking={() => handleOpenBooking()}
@@ -195,7 +203,7 @@ export default function App() {
               onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
             />
 
-            {/* Live Tracking Section */}
+            {/* Live Tracking Section with Before-After Slider */}
             <LiveTrackingSection
               orders={orders}
               selectedOrderNumber={trackedOrderNumber}
@@ -204,7 +212,7 @@ export default function App() {
               onOpenReviewModal={(order) => setActiveReviewOrder(order)}
             />
 
-            {/* Catalog Section */}
+            {/* Catalog Section with 13 Treatments & Care Products */}
             <CatalogSection
               services={services}
               careProducts={careProducts}
@@ -222,29 +230,46 @@ export default function App() {
               isOpenReviewModal={!!activeReviewOrder}
               onCloseReviewModal={() => setActiveReviewOrder(null)}
             />
+          </main>
 
-            {/* Footer & FAQ */}
-            <FooterSection />
+          {/* Customer Footer */}
+          <FooterSection onRequestAdminAccess={() => setIsStaffModalOpen(true)} />
 
-            {/* Floating WhatsApp Live CS */}
-            <FloatingWhatsAppWidget />
-          </>
-        ) : (
-          /* Admin Dashboard Console */
-          <AdminDashboard
-            orders={orders}
-            services={services}
-            careProducts={careProducts}
-            onUpdateOrderStatus={handleUpdateOrderStatus}
-            onOpenWhatsAppModal={(order, targetStage) => setActiveWhatsAppState({ order, targetStage })}
-            onOpenReceipt={(order) => setActiveReceiptOrder(order)}
-            onAddNewOrder={(newOrder) => setOrders(prev => [newOrder, ...prev])}
-            onUpdateProductStock={handleUpdateProductStock}
-          />
-        )}
-      </main>
+          {/* Floating WhatsApp Live CS Concierge */}
+          <FloatingWhatsAppWidget />
+        </>
+      ) : (
+        /* 
+          ====================================================================
+          MODE ADMIN (DEDICATED BACKOFFICE WORKSHOP CONSOLE)
+          ====================================================================
+        */
+        <AdminConsole
+          orders={orders}
+          services={services}
+          careProducts={careProducts}
+          reviews={reviews}
+          onUpdateOrderStatus={handleUpdateOrderStatus}
+          onOpenWhatsAppModal={(order, targetStage) => setActiveWhatsAppState({ order, targetStage })}
+          onOpenReceipt={(order) => setActiveReceiptOrder(order)}
+          onAddNewOrder={(newOrder) => setOrders(prev => [newOrder, ...prev])}
+          onUpdateProductStock={handleUpdateProductStock}
+          onAddReviewReply={handleAddReviewReply}
+          onExitAdmin={() => setCurrentView('customer')}
+        />
+      )}
 
-      {/* Booking Wizard Modal with Multi-Pair & Vouchers */}
+      {/* Staff Authentication PIN Gate Modal */}
+      <StaffAccessModal
+        isOpen={isStaffModalOpen}
+        onClose={() => setIsStaffModalOpen(false)}
+        onSuccessLogin={() => {
+          setIsStaffModalOpen(false);
+          setCurrentView('admin');
+        }}
+      />
+
+      {/* Customer Booking Wizard Modal */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}

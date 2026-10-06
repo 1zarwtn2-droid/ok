@@ -1,7 +1,11 @@
 import React from 'react';
 import { MapPin, Phone, Clock, ShieldCheck, Mail, Instagram, MessageCircle } from 'lucide-react';
 
-export const FooterSection: React.FC = () => {
+interface FooterSectionProps {
+  onRequestAdminAccess?: () => void;
+}
+
+export const FooterSection: React.FC<FooterSectionProps> = ({ onRequestAdminAccess }) => {
   return (
     <footer id="about" className="bg-neutral-950 border-t border-neutral-900 pt-16 pb-12 text-neutral-400 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -147,6 +151,18 @@ export const FooterSection: React.FC = () => {
             <a href="#" className="hover:text-neutral-400 transition-colors">Kebijakan Privasi</a>
             <span>·</span>
             <a href="#" className="hover:text-neutral-400 transition-colors">SLA Pengerjaan</a>
+            {onRequestAdminAccess && (
+              <>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={onRequestAdminAccess}
+                  className="hover:text-amber-400 transition-colors text-neutral-500 font-mono"
+                >
+                  🔒 Console Staff
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

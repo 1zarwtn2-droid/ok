@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
-import { Sparkles, Calendar, Search, ShieldCheck, Menu, X, SlidersHorizontal, MessageCircle, Layers } from 'lucide-react';
+import { Sparkles, Calendar, Search, ShieldCheck, Menu, X, Shield, MessageCircle, Layers, ArrowUpRight } from 'lucide-react';
 
 interface NavbarProps {
-  currentView: 'customer' | 'admin';
-  onSwitchView: (view: 'customer' | 'admin') => void;
   onOpenBooking: () => void;
   activeOrdersCount: number;
   onQuickTrack: (orderNumber: string) => void;
+  onRequestAdminAccess: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  currentView,
-  onSwitchView,
   onOpenBooking,
   activeOrdersCount,
-  onQuickTrack
+  onQuickTrack,
+  onRequestAdminAccess
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [quickTrackInput, setQuickTrackInput] = useState('');
@@ -28,7 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-neutral-950/85 backdrop-blur-md border-b border-neutral-800/80">
+    <header className="sticky top-0 z-40 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Brand Logo */}
         <div className="flex items-center gap-3">
@@ -47,23 +45,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           </a>
         </div>
 
-        {/* Desktop Navigation Links */}
-        {currentView === 'customer' && (
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-neutral-300">
-            <a href="#catalog" className="hover:text-amber-400 transition-colors">
-              Katalog Layanan
-            </a>
-            <a href="#tracking" className="hover:text-amber-400 transition-colors">
-              Lacak Sepatu
-            </a>
-            <a href="#reviews" className="hover:text-amber-400 transition-colors">
-              Ulasan Pelanggan
-            </a>
-            <a href="#about" className="hover:text-amber-400 transition-colors">
-              Garansi & Lokasi
-            </a>
-          </nav>
-        )}
+        {/* Desktop Navigation Links for Customers */}
+        <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-neutral-300">
+          <a href="#catalog" className="hover:text-amber-400 transition-colors">
+            Katalog Layanan
+          </a>
+          <a href="#tracking" className="hover:text-amber-400 transition-colors">
+            Lacak Sepatu
+          </a>
+          <a href="#reviews" className="hover:text-amber-400 transition-colors">
+            Ulasan Pelanggan
+          </a>
+          <a href="#about" className="hover:text-amber-400 transition-colors">
+            Garansi & Lokasi
+          </a>
+        </nav>
 
         {/* Live Workshop Queue Indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs">
@@ -73,43 +69,27 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* Right Actions: Mode Switcher & Booking CTA */}
+        {/* Right Actions: Staff Portal Access & Booking CTA */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* View Switcher Button */}
-          <div className="flex p-0.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs">
-            <button
-              onClick={() => onSwitchView('customer')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-                currentView === 'customer'
-                  ? 'bg-neutral-800 text-amber-400 shadow-sm font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              Pelanggan
-            </button>
-            <button
-              onClick={() => onSwitchView('admin')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
-                currentView === 'admin'
-                  ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <SlidersHorizontal className="w-3 h-3" />
-              Admin
-            </button>
-          </div>
+          {/* Dedicated Staff Access Link */}
+          <button
+            type="button"
+            onClick={onRequestAdminAccess}
+            className="px-3 py-1.5 rounded-xl border border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-amber-300 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            title="Masuk ke Console Staff & Admin Workshop"
+          >
+            <Shield className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Portal Staff</span>
+          </button>
 
-          {/* Booking CTA Button (Visible on customer view) */}
-          {currentView === 'customer' && (
-            <button
-              onClick={onOpenBooking}
-              className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-400/20 transition-all active:scale-95 whitespace-nowrap"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Booking Antrean</span>
-            </button>
-          )}
+          {/* Booking CTA Button */}
+          <button
+            onClick={onOpenBooking}
+            className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-400/20 transition-all active:scale-95 whitespace-nowrap"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Booking Antrean</span>
+          </button>
 
           {/* Mobile hamburger */}
           <button
@@ -172,6 +152,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Garansi & Lokasi Studio
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onRequestAdminAccess();
+              }}
+              className="p-2 text-left rounded-lg text-amber-300 font-semibold bg-neutral-900 flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-amber-400" />
+                Portal Staff & Admin Workshop
+              </span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
           </nav>
         </div>
       )}
