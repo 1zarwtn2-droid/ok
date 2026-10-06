@@ -1,0 +1,6 @@
+{
+  "name": "ShoeCare Studio - Layanan Servis & Perawatan Sepatu Premium",
+  "description": "Platform servis sepatu lengkap dengan booking antrean real-time, pelacakan live status pengerjaan otomatis, notifikasi WhatsApp instan, katalog treatment & produk, serta pembayaran digital.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
