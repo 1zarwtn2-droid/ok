@@ -7,7 +7,7 @@ import {
   Sliders, Calendar, ArrowLeft, Eye
 } from 'lucide-react';
 import { OrderItem, OrderStatus, ServiceItem, CareProductItem, ReviewItem, TimelineLog } from '../types';
-import { getStatusLabel, generateWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
+import { getStatusLabel, generateWhatsAppMessage, buildWhatsAppUrl, ADMIN_WHATSAPP_NUMBER } from '../utils/whatsapp';
 
 interface AdminConsoleProps {
   orders: OrderItem[];
@@ -179,6 +179,28 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
     onAddReviewReply(reviewId, replyText.trim());
     setReplyingReviewId(null);
     setReplyText('');
+  };
+
+  const handleSendDailySummaryToAdminWA = () => {
+    const summaryText = 
+`*📊 REKAP LAPORAN HARIAN WORKSHOP*
+*SHOELAB STUDIO - SENT TO ADMIN (${ADMIN_WHATSAPP_NUMBER})*
+━━━━━━━━━━━━━━━━━━
+Halo Admin ShoeLab, berikut rangkuman operasional workshop hari ini:
+
+📌 *Ringkasan KPI:*
+• Total Antrean Berjalan: *${activeQueue} Pasang*
+• Selesai Lolos QC: *${completedOrders} Pasang*
+• Total Omzet Terdata: *Rp ${totalRevenue.toLocaleString('id-ID')}*
+• Pesanan Antar-Jemput: *${pickupDeliveryOrders.length} Order*
+
+📊 *Rincian Status:*
+${ALL_STATUSES.map(s => `• ${s.label}: ${orders.filter(o => o.status === s.key).length} pasang`).join('\n')}
+
+_Laporan otomatis dikirim dari Console Admin Workshop._`;
+
+    const url = buildWhatsAppUrl(ADMIN_WHATSAPP_NUMBER, summaryText);
+    window.open(url, '_blank');
   };
 
   return (
@@ -362,6 +384,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
           <div className="flex items-center gap-2.5">
             <button
+              onClick={handleSendDailySummaryToAdminWA}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+              title="Kirim Ringkasan Operasional Hari ini ke WhatsApp Admin (08814519955)"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Rekap ke WA Admin ({ADMIN_WHATSAPP_NUMBER})</span>
+            </button>
+
+            <button
               onClick={handleExportCSV}
               className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
               title="Unduh Laporan Antrean & Omzet Format CSV"
@@ -385,6 +416,24 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           {/* TAB 1: QUEUE MANAGEMENT */}
           {activeMenu === 'queue' && (
             <div className="space-y-5 animate-in fade-in duration-150">
+              {/* WhatsApp Notification Routing Notice */}
+              <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold flex-shrink-0">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-emerald-300">Pengiriman Notifikasi Live ke Pelanggan:</span>
+                    <span className="text-neutral-300 ml-1.5">
+                      Setiap update status pengerjaan yang diubah admin/staff akan disiapkan untuk dikirimkan langsung ke nomor WhatsApp Pelanggan terkait.
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold whitespace-nowrap self-start sm:self-auto border border-emerald-500/30">
+                  NOTIF LIVE: WA PELANGGAN
+                </span>
+              </div>
+
               {/* Filter & Search Bar */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-md">
@@ -520,7 +569,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                                   type="button"
                                   onClick={() => onOpenWhatsAppModal(ord)}
                                   className="p-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 transition-colors"
-                                  title="Buka Chat WhatsApp"
+                                  title={`Kirim Notifikasi Live ke WA Pelanggan (${ord.customer.name} - ${ord.customer.whatsapp})`}
                                 >
                                   <MessageCircle className="w-4 h-4" />
                                 </button>
@@ -741,25 +790,88 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
           {/* TAB 5: WHATSAPP AUDIT TRAIL */}
           {activeMenu === 'whatsapp' && (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-4 animate-in fade-in duration-150">
-              <h3 className="font-bold text-white text-sm">
-                Log Notifikasi WhatsApp Terkirim Otomatis
-              </h3>
-              <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
-                {orders.flatMap(o => o.waNotificationHistory.map((log, i) => ({ ...log, orderNumber: o.orderNumber, customerName: o.customer.name, id: `${o.id}-${i}` }))).map((n) => (
-                  <div key={n.id} className="p-3 bg-neutral-950 rounded-xl border border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-5 animate-in fade-in duration-150">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-800">
+                <div>
+                  <h3 className="font-bold text-white text-base flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-emerald-400" />
+                    <span>Log & Pengiriman Notifikasi Live ke Pelanggan</span>
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Pusat pengiriman notifikasi pembaruan status pengerjaan sepatu langsung ke nomor WhatsApp Pelanggan.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono px-3 py-1 rounded-xl bg-neutral-950 border border-neutral-800 text-emerald-400 font-bold">
+                    Target: WhatsApp Customer
+                  </span>
+                </div>
+              </div>
+
+              {/* Status summary banner */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-neutral-500">Penerima Notifikasi Live</span>
+                  <div className="font-bold text-sm text-white">Nomor WA Masing-masing Pelanggan</div>
+                  <div className="text-[11px] text-emerald-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Terhubung Otomatis
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-neutral-500">Aksi Admin Staff</span>
+                  <div className="font-semibold text-xs text-amber-300">1-Klik Kirim via WhatsApp Web/App</div>
+                  <div className="text-[11px] text-neutral-400">Pesan otomatis terformat rapi</div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-neutral-500">Total Log Notifikasi</span>
+                  <div className="font-mono font-bold text-base text-white">
+                    {orders.reduce((sum, o) => sum + o.waNotificationHistory.length, 0)} Notifikasi
+                  </div>
+                  <div className="text-[11px] text-neutral-400">Audit trail riwayat update</div>
+                </div>
+              </div>
+
+              {/* Log stream */}
+              <div className="space-y-2.5 max-h-[550px] overflow-y-auto pr-1">
+                {orders.flatMap(o => o.waNotificationHistory.map((log, i) => ({ 
+                  ...log, 
+                  order: o,
+                  orderNumber: o.orderNumber, 
+                  customerName: o.customer.name, 
+                  customerPhone: o.customer.whatsapp,
+                  id: `${o.id}-${i}` 
+                }))).map((n) => (
+                  <div key={n.id} className="p-3.5 bg-neutral-950 rounded-xl border border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-neutral-700 transition-colors">
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-bold text-amber-400">{n.orderNumber}</span>
-                        <span className="text-neutral-300 font-semibold">{n.customerName}</span>
+                        <span className="text-neutral-200 font-semibold">{n.customerName}</span>
                         <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
                           {n.stage}
                         </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono border border-neutral-700">
+                          Tujuan: WA Pelanggan ({n.customerPhone})
+                        </span>
                       </div>
                       <p className="text-neutral-400 text-[11px] italic">&ldquo;{n.messageSnippet}&rdquo;</p>
+                      <div className="text-[10px] text-neutral-500 font-mono">
+                        {n.timestamp}
+                      </div>
                     </div>
-                    <div className="text-[10px] text-neutral-500 font-mono">
-                      {n.timestamp}
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => onOpenWhatsAppModal(n.order, n.stage as OrderStatus)}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 transition-colors border border-emerald-500/30"
+                        title={`Buka & Kirim Notif Live ke WA Pelanggan (${n.customerPhone})`}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Kirim ke {n.customerPhone}</span>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -984,9 +1096,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   setInspectOrder(null);
                   onOpenWhatsAppModal(o);
                 }}
-                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors"
               >
-                Kirim WA
+                Kirim Notif ke WA Pelanggan ({inspectOrder.customer.whatsapp})
               </button>
             </div>
           </div>

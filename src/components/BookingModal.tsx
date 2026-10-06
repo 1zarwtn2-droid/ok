@@ -7,7 +7,7 @@ import {
 import { ServiceItem, CareProductItem, OrderItem, PaymentMethodType, QueueSlot, ShoeDetails } from '../types';
 import { PROMO_VOUCHERS } from '../data/mockData';
 import { PaymentGatewayModal } from './PaymentGatewayModal';
-import { generateWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
+import { ADMIN_WHATSAPP_NUMBER } from '../utils/whatsapp';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -53,6 +53,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [selectedServiceId, setSelectedServiceId] = useState<string>(
     preselectedServiceId || services[0]?.id || ''
   );
+  const [serviceFocusTab, setServiceFocusTab] = useState<'all' | 'repair' | 'cleaning'>('all');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<{ id: string; quantity: number }[]>([]);
 
@@ -256,7 +257,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           timestamp: formattedNow,
           stage: 'BOOKING_CONFIRMED',
           recipient: whatsapp || '081234567890',
-          messageSnippet: 'Reservasi antrean pengerjaan Anda telah DITERIMA & DIKONFIRMASI...'
+          messageSnippet: `Jadwal reservasi antrean pesanan ${orderNumber} telah terkonfirmasi dan diamankan...`
         }
       ]
     };
@@ -265,13 +266,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setCreatedOrder(newOrder);
     setShowPaymentModal(false);
     setCurrentStep(5);
-  };
-
-  const handleSendWAConfirmation = () => {
-    if (!createdOrder) return;
-    const msg = generateWhatsAppMessage(createdOrder, 'BOOKING_CONFIRMED');
-    const url = buildWhatsAppUrl(createdOrder.customer.whatsapp, msg);
-    window.open(url, '_blank');
   };
 
   return (
@@ -336,17 +330,56 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           {currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                   <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
                     1. Pilih Treatment Utama Sepatu
                   </label>
-                  <span className="text-[11px] text-amber-400 font-mono">
-                    {services.length} Paket Tersedia
-                  </span>
+                  {/* Focus Pill Switcher */}
+                  <div className="flex p-0.5 bg-neutral-900 border border-neutral-800 rounded-xl text-[11px] w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setServiceFocusTab('all')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                        serviceFocusTab === 'all'
+                          ? 'bg-amber-400 text-neutral-950 shadow-sm'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      Semua ({services.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setServiceFocusTab('repair')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                        serviceFocusTab === 'repair'
+                          ? 'bg-blue-500 text-white shadow-sm'
+                          : 'text-neutral-400 hover:text-blue-300'
+                      }`}
+                    >
+                      🛠️ Perbaikan ({services.filter(s => s.category === 'repair' || s.focusType === 'repair').length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setServiceFocusTab('cleaning')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                        serviceFocusTab === 'cleaning'
+                          ? 'bg-emerald-500 text-white shadow-sm'
+                          : 'text-neutral-400 hover:text-emerald-300'
+                      }`}
+                    >
+                      ✨ Pembersihan ({services.filter(s => s.category === 'cleaning' || s.focusType === 'cleaning').length})
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
-                  {services.map((srv) => (
+                  {services
+                    .filter(s => {
+                      if (serviceFocusTab === 'repair') return s.category === 'repair' || s.focusType === 'repair';
+                      if (serviceFocusTab === 'cleaning') return s.category === 'cleaning' || s.focusType === 'cleaning';
+                      return true;
+                    })
+                    .map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => setSelectedServiceId(srv.id)}
@@ -956,41 +989,37 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               {/* Action Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto text-left">
                 <button
-                  onClick={handleSendWAConfirmation}
-                  className="p-4 rounded-2xl bg-emerald-600/90 hover:bg-emerald-500 text-white flex items-center gap-3 transition-colors shadow-lg shadow-emerald-950"
-                >
-                  <MessageCircle className="w-6 h-6 flex-shrink-0" />
-                  <div className="text-xs">
-                    <div className="font-bold">Kirim Konfirmasi WhatsApp</div>
-                    <div className="opacity-80 text-[11px]">Buka tiket resmi di WhatsApp</div>
-                  </div>
-                </button>
-
-                <button
                   onClick={() => {
                     onViewReceipt(createdOrder);
                   }}
-                  className="p-4 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 flex items-center gap-3 transition-colors border border-neutral-700"
+                  className="p-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-neutral-950 flex items-center gap-3 transition-colors shadow-lg shadow-amber-400/20"
                 >
-                  <FileText className="w-6 h-6 flex-shrink-0 text-amber-400" />
+                  <FileText className="w-6 h-6 flex-shrink-0 text-neutral-950" />
                   <div className="text-xs">
-                    <div className="font-bold">Lihat Struk Digital</div>
-                    <div className="text-neutral-400 text-[11px]">Cetak tanda terima resmi</div>
+                    <div className="font-extrabold text-sm">Lihat Struk Digital</div>
+                    <div className="text-neutral-800 text-[11px]">Cetak atau simpan bukti reservasi</div>
                   </div>
                 </button>
-              </div>
 
-              <div className="pt-2">
                 <button
                   onClick={() => {
                     onClose();
                     onTrackOrder(createdOrder.orderNumber);
                   }}
-                  className="text-xs font-bold text-amber-400 hover:text-amber-300 inline-flex items-center gap-1.5 underline underline-offset-4"
+                  className="p-4 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 flex items-center gap-3 transition-colors border border-neutral-700"
                 >
-                  Lacak Status Pengerjaan Sepatu Ini Sekarang
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <Sparkles className="w-6 h-6 flex-shrink-0 text-amber-400" />
+                  <div className="text-xs">
+                    <div className="font-bold text-sm">Lacak Status Sepatu</div>
+                    <div className="text-neutral-400 text-[11px]">Pantau progres pengerjaan teknisi</div>
+                  </div>
                 </button>
+              </div>
+
+              <div className="pt-2">
+                <p className="text-xs text-neutral-400 max-w-md mx-auto leading-relaxed">
+                  Data antrean Anda telah masuk ke sistem operasional workshop. Tim teknisi akan memulai treatment sesuai jadwal slot.
+                </p>
               </div>
             </div>
           )}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send, Sparkles, Clock, ShieldCheck, ChevronRight } from 'lucide-react';
+import { ADMIN_WHATSAPP_NUMBER, buildAdminWhatsAppUrl } from '../utils/whatsapp';
 
 export const FloatingWhatsAppWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,25 +9,24 @@ export const FloatingWhatsAppWidget: React.FC = () => {
   const quickQuestions = [
     {
       title: 'Tanya Kuota Antrean Hari Ini',
-      text: 'Halo ShoeLab CS, saya mau tanya apakah slot antrean treatment pengerjaan hari ini masih tersedia?'
+      text: 'Halo Admin ShoeLab, saya mau tanya apakah slot antrean treatment pengerjaan hari ini masih tersedia?'
     },
     {
       title: 'Konsultasi Bahan Suede & Nubuck',
-      text: 'Halo, saya punya sneaker bahan Suede yang terkena air hujan & kusam, treatment apa yang paling aman?'
+      text: 'Halo Admin, saya punya sneaker bahan Suede yang terkena air hujan & kusam, treatment apa yang paling aman?'
     },
     {
       title: 'Tanya Biaya Unyellowing Sol',
-      text: 'Halo ShoeLab, berapa estimasi biaya dan durasi untuk unyellowing sol Jordan/Air Force 1 saya?'
+      text: 'Halo Admin ShoeLab, berapa estimasi biaya dan durasi untuk unyellowing sol Jordan/Air Force 1 saya?'
     },
     {
       title: 'Klaim Garansi Pengerjaan 48 Jam',
-      text: 'Halo admin, saya ingin klaim garansi bersih 48 jam untuk pesanan saya.'
+      text: 'Halo Admin, saya ingin klaim garansi bersih 48 jam untuk pesanan saya.'
     }
   ];
 
   const handleSend = (text: string) => {
-    const encoded = encodeURIComponent(text);
-    window.open(`https://wa.me/6281234567890?text=${encoded}`, '_blank');
+    window.open(buildAdminWhatsAppUrl(text), '_blank');
   };
 
   return (
@@ -41,9 +41,9 @@ export const FloatingWhatsAppWidget: React.FC = () => {
                 SL
               </div>
               <div>
-                <h4 className="font-bold text-sm leading-tight">ShoeLab Live CS</h4>
+                <h4 className="font-bold text-sm leading-tight">Admin Workshop ShoeLab</h4>
                 <p className="text-[11px] text-emerald-200 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-300"></span> Online • Respon Cepat
+                  <span className="w-2 h-2 rounded-full bg-emerald-300"></span> Online ({ADMIN_WHATSAPP_NUMBER})
                 </p>
               </div>
             </div>

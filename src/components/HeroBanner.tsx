@@ -3,6 +3,7 @@ import {
   Sparkles, Calendar, Search, ShieldCheck, MessageCircle, 
   ArrowRight, CheckCircle2, Zap, Clock, Smartphone 
 } from 'lucide-react';
+import { ADMIN_WHATSAPP_NUMBER } from '../utils/whatsapp';
 
 interface HeroBannerProps {
   onOpenBooking: () => void;
@@ -37,9 +38,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             {/* Live Pill Announcement */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 flex-wrap">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-amber-400 font-bold font-mono">LIVE UPDATE</span>
+              <span className="text-amber-400 font-bold font-mono">WORKSHOP RESMI</span>
               <span className="text-neutral-500">·</span>
-              <span>Sistem Notifikasi WhatsApp Aktif & Antrean Terbuka</span>
+              <span>Cuci & Restorasi Sneaker Premium • Garansi Kepuasan 48 Jam</span>
               {onOpenDiagnostic && (
                 <button
                   type="button"
@@ -53,15 +54,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
             {/* Main Title */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-black text-white tracking-tight leading-[1.15]">
-              Servis Sepatu Premium dengan{' '}
+              Spesialis <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Perbaikan Lengkap</span> &{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500">
-                Notifikasi WhatsApp Real-Time
+                Pembersihan Sepatu
               </span>
             </h1>
 
             {/* Subheading */}
             <p className="text-sm sm:text-base text-neutral-400 max-w-xl leading-relaxed">
-              Platform perawatan dan restorasi sneaker terlengkap. Reservasi antrean tanpa antre di toko, pelacakan live status pengerjaan, foto QC before/after, pembayaran digital terintegrasi, dan garansi bersih 48 jam.
+              Workshop resmi restorasi & perawatan sneaker premium. Mulai dari lem sol copot heat-press, sole swap, jahit 360°, rekonstruksi tumit, hingga deep clean 360° steril UV, unyellowing sol kuning, dan spa kulit formal bergaransi.
             </p>
 
             {/* Action Buttons & Resi Search */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Phone, Clock, ShieldCheck, Mail, Instagram, MessageCircle } from 'lucide-react';
+import { ADMIN_WHATSAPP_NUMBER, buildAdminWhatsAppUrl } from '../utils/whatsapp';
 
 interface FooterSectionProps {
   onRequestAdminAccess?: () => void;
@@ -65,11 +66,11 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ onRequestAdminAcce
             </p>
             <div className="flex items-center gap-3 pt-1">
               <a
-                href="https://wa.me/6281234567890"
+                href={buildAdminWhatsAppUrl('Halo Admin ShoeLab Studio, saya ingin menanyakan informasi layanan & operasional workshop.')}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 flex items-center justify-center text-emerald-400 transition-colors"
-                title="WhatsApp CS"
+                title={`WhatsApp Admin (${ADMIN_WHATSAPP_NUMBER})`}
               >
                 <MessageCircle className="w-4 h-4" />
               </a>
@@ -105,7 +106,7 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ onRequestAdminAcce
             </div>
             <div className="flex items-center gap-2 text-neutral-400 text-xs">
               <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <span className="font-mono">0812-3456-7890 (Customer Service)</span>
+              <span className="font-mono">0881-4519-955 (WhatsApp Admin)</span>
             </div>
           </div>
 

@@ -11,7 +11,6 @@ interface LiveTrackingSectionProps {
   orders: OrderItem[];
   selectedOrderNumber?: string;
   onOpenReceipt: (order: OrderItem) => void;
-  onOpenWhatsAppModal: (order: OrderItem) => void;
   onOpenReviewModal: (order: OrderItem) => void;
 }
 
@@ -27,7 +26,6 @@ export const LiveTrackingSection: React.FC<LiveTrackingSectionProps> = ({
   orders,
   selectedOrderNumber,
   onOpenReceipt,
-  onOpenWhatsAppModal,
   onOpenReviewModal
 }) => {
   const [searchInput, setSearchInput] = useState(selectedOrderNumber || '');
@@ -138,13 +136,16 @@ export const LiveTrackingSection: React.FC<LiveTrackingSectionProps> = ({
             </div>
 
             <div className="flex items-center flex-wrap gap-2.5">
-              <button
-                onClick={() => onOpenWhatsAppModal(currentOrder)}
-                className="px-4 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              <a
+                href={`https://wa.me/628814519955?text=${encodeURIComponent(`Halo CS ShoeLab Studio, saya ingin menanyakan info pesanan dengan nomor resi ${currentOrder.orderNumber}.`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors border border-neutral-700"
+                title="Tanya informasi status pesanan ke CS ShoeLab"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-400" />
-                Kirim Update via WhatsApp
-              </button>
+                <span>Hubungi CS Studio</span>
+              </a>
 
               <button
                 onClick={() => onOpenReceipt(currentOrder)}
@@ -352,13 +353,13 @@ export const LiveTrackingSection: React.FC<LiveTrackingSectionProps> = ({
               {/* Direct WhatsApp help link */}
               <div className="pt-3 border-t border-neutral-900 mt-3">
                 <a
-                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo CS ShoeLab, saya ingin menanyakan pesanan saya dengan nomor resi ${currentOrder.orderNumber}`)}`}
+                  href={`https://wa.me/628814519955?text=${encodeURIComponent(`Halo Admin ShoeLab (08814519955), saya ingin menanyakan pesanan saya dengan nomor resi ${currentOrder.orderNumber}`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-2.5 px-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-colors border border-neutral-800"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                  Chat Langsung dengan CS / Teknisi
+                  Chat Langsung ke WA Admin (08814519955)
                 </a>
               </div>
             </div>

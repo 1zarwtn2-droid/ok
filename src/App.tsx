@@ -19,6 +19,8 @@ import { FooterSection } from './components/FooterSection';
 import { ShoeDiagnosticModal } from './components/ShoeDiagnosticModal';
 import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
 import { StaffAccessModal } from './components/StaffAccessModal';
+import { ADMIN_WHATSAPP_NUMBER, buildAdminWhatsAppUrl } from './utils/whatsapp';
+import { User, ShieldCheck } from 'lucide-react';
 
 export default function App() {
   // Persistence with localStorage
@@ -172,13 +174,73 @@ export default function App() {
 
   const handleBuyProduct = (product: CareProductItem) => {
     const text = encodeURIComponent(
-      `Halo CS ShoeLab Studio, saya ingin memesan produk perawatan sepatu:\n\n• Produk: *${product.name}*\n• Harga: *Rp ${product.price.toLocaleString('id-ID')}*\n• Spesifikasi: *${product.volumeOrSpec}*\n\nMohon info ketersediaan stok & pengiriman ke alamat saya. Terima kasih!`
+      `Halo Admin ShoeLab Studio (${ADMIN_WHATSAPP_NUMBER}), saya ingin memesan produk perawatan sepatu:\n\n• Produk: *${product.name}*\n• Harga: *Rp ${product.price.toLocaleString('id-ID')}*\n• Spesifikasi: *${product.volumeOrSpec}*\n\nMohon info ketersediaan stok & pengiriman ke alamat saya. Terima kasih!`
     );
-    window.open(`https://wa.me/6281234567890?text=${text}`, '_blank');
+    window.open(buildAdminWhatsAppUrl(`Halo Admin ShoeLab Studio (${ADMIN_WHATSAPP_NUMBER}), saya ingin memesan produk perawatan sepatu:\n\n• Produk: *${product.name}*\n• Harga: *Rp ${product.price.toLocaleString('id-ID')}*\n• Spesifikasi: *${product.volumeOrSpec}*\n\nMohon info ketersediaan stok & pengiriman ke alamat saya. Terima kasih!`), '_blank');
   };
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans selection:bg-amber-400 selection:text-neutral-950">
+      {/* 
+        ====================================================================
+        TOP GLOBAL PORTAL SWITCHER & WHATSAPP ADMIN INDICATOR
+        ====================================================================
+      */}
+      <div className="bg-neutral-900 border-b border-neutral-800/90 px-4 py-2 text-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
+        <div className="flex items-center gap-2 text-[11px] text-neutral-400">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+          <span className="font-semibold text-neutral-300">ShoeLab Care Studio</span>
+          <span className="hidden sm:inline text-neutral-700">•</span>
+          {currentView === 'admin' ? (
+            <span className="hidden sm:inline text-amber-400 font-medium">
+              Console Staff & Workshop • Pengiriman Notifikasi Live Langsung ke WhatsApp Pelanggan
+            </span>
+          ) : (
+            <span className="hidden sm:inline text-neutral-400">
+              Layanan Cuci & Restorasi Sneaker Premium • Booking Antrean & Tracking Otomatis
+            </span>
+          )}
+        </div>
+
+        {/* Modern Segmented Portal Switcher */}
+        <div className="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setCurrentView('customer')}
+            className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              currentView === 'customer'
+                ? 'bg-amber-400 text-neutral-950 shadow-sm font-bold'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Portal Pelanggan</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (currentView === 'customer') {
+                setIsStaffModalOpen(true);
+              } else {
+                setCurrentView('admin');
+              }
+            }}
+            className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              currentView === 'admin'
+                ? 'bg-amber-400 text-neutral-950 shadow-sm font-bold'
+                : 'text-neutral-400 hover:text-amber-300'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>Console Admin</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-800 text-amber-300 font-mono">
+              PIN 8899
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* 
         ====================================================================
         MODE PELANGGAN (CUSTOMER PORTAL)
@@ -208,7 +270,6 @@ export default function App() {
               orders={orders}
               selectedOrderNumber={trackedOrderNumber}
               onOpenReceipt={(order) => setActiveReceiptOrder(order)}
-              onOpenWhatsAppModal={(order) => setActiveWhatsAppState({ order })}
               onOpenReviewModal={(order) => setActiveReviewOrder(order)}
             />
 

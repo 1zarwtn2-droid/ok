@@ -6,6 +6,7 @@ export interface ServiceItem {
   id: string;
   name: string;
   category: ServiceCategory;
+  focusType?: 'repair' | 'cleaning';
   price: number;
   durationHours: number;
   description: string;
@@ -20,7 +21,8 @@ export interface ServiceItem {
 export interface CareProductItem {
   id: string;
   name: string;
-  category: 'cleaner' | 'brush' | 'spray' | 'accessories';
+  category: 'repair' | 'cleaning' | 'cleaner' | 'brush' | 'spray' | 'accessories';
+  focusType?: 'repair' | 'cleaning';
   price: number;
   stock: number;
   description: string;

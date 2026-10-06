@@ -1,5 +1,7 @@
 import { OrderItem, OrderStatus } from '../types';
 
+export const ADMIN_WHATSAPP_NUMBER = '08814519955';
+
 /**
  * Normalizes an Indonesian phone number to international 62 format
  */
@@ -11,6 +13,13 @@ export function formatPhoneNumberForWhatsApp(phone: string): string {
     cleaned = '62' + cleaned;
   }
   return cleaned;
+}
+
+/**
+ * Builds direct WhatsApp URL for Admin Workshop (08814519955)
+ */
+export function buildAdminWhatsAppUrl(message: string): string {
+  return buildWhatsAppUrl(ADMIN_WHATSAPP_NUMBER, message);
 }
 
 /**
@@ -40,9 +49,9 @@ export function getStatusLabel(status: OrderStatus): { label: string; color: str
 }
 
 /**
- * Generates official formatted WhatsApp notification message
+ * Generates official formatted WhatsApp notification message for Customer (or Admin report if forAdmin is true)
  */
-export function generateWhatsAppMessage(order: OrderItem, currentStage?: OrderStatus): string {
+export function generateWhatsAppMessage(order: OrderItem, currentStage?: OrderStatus, forAdmin: boolean = false): string {
   const stage = currentStage || order.status;
   const storeName = 'SHOELAB PREMIUM STUDIO';
   const trackingUrl = `${window.location.origin}/?track=${order.orderNumber}`;
@@ -54,59 +63,87 @@ export function generateWhatsAppMessage(order: OrderItem, currentStage?: OrderSt
   switch (stage) {
     case 'PENDING_PAYMENT':
       headerTitle = '📋 INVOICE & RESERVASI ANTREAN';
-      statusDetail = `Pesanan Anda berhasil dicatat dan sedang menunggu verifikasi pembayaran digital sejumlah *Rp ${order.totalPrice.toLocaleString('id-ID')}*.`;
-      nextAction = `Silakan selesaikan pembayaran untuk mengamankan kuota slot antrean pengerjaan teknisi kami.`;
+      statusDetail = `Pesanan berhasil dicatat dan sedang menunggu verifikasi pembayaran digital sejumlah *Rp ${order.totalPrice.toLocaleString('id-ID')}*.`;
+      nextAction = `Menunggu customer menyelesaikan pembayaran.`;
       break;
 
     case 'BOOKING_CONFIRMED':
       headerTitle = '✨ KONFIRMASI JADWAL ANTREAN';
-      statusDetail = `Reservasi antrean pengerjaan Anda telah *DITERIMA & DIKONFIRMASI*. Slot pengerjaan telah diamankan untuk tanggal *${order.scheduledDate}* pada sesi *${order.scheduledTimeSlot}*.`;
+      statusDetail = `Reservasi antrean pengerjaan telah *DIKONFIRMASI*. Slot pengerjaan diamankan untuk tanggal *${order.scheduledDate}* pada sesi *${order.scheduledTimeSlot}*.`;
       nextAction = order.deliveryMethod === 'drop_off'
-        ? `📍 Silakan bawa sepatu Anda ke outlet: *Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan* sebelum batas waktu slot.`
-        : `🛵 Kurir kami akan menjemput sepatu di alamat: *${order.pickupAddress || order.customer.address || 'Alamat Penjemputan'}* sesuai jadwal.`;
+        ? `📍 Customer memilih Drop-off langsung ke Studio.`
+        : `🛵 Dijadwalkan penjemputan ke alamat customer: *${order.pickupAddress || order.customer.address || 'Alamat Penjemputan'}*.`;
       break;
 
     case 'SHOES_RECEIVED':
       headerTitle = '👟 SEPATU TELAH TIBA DI WORKSHOP';
-      statusDetail = `Sepatu *${order.shoe.brand} ${order.shoe.model}* telah kami terima di Studio dan telah melewati tahap initial inspection (pemeriksaan kondisi noda, lem, dan bahan).`;
-      nextAction = `Teknisi penanggung jawab: *${order.technicianName}*.\nKondisi terdata: _${order.shoe.conditionNote}_.`;
+      statusDetail = `Sepatu *${order.shoe.brand} ${order.shoe.model}* telah diterima di Studio dan telah melewati tahap initial inspection (pemeriksaan fisik).`;
+      nextAction = `Teknisi penanggung jawab: *${order.technicianName}*.\nCatatan: _${order.shoe.conditionNote}_.`;
       break;
 
     case 'IN_TREATMENT':
       headerTitle = '🫧 PROSES PENGERJAAN DIMULAI';
-      statusDetail = `Sepatu Anda saat ini sedang dalam proses *${order.serviceName}* oleh Master Technician kami (${order.technicianName}).`;
-      nextAction = `Kami menggunakan cairan pembersih formula ramah material dan teknik deep scrubbing aman serat kain.`;
+      statusDetail = `Sepatu sedang dalam proses pengerjaan *${order.serviceName}* oleh Master Technician (${order.technicianName}).`;
+      nextAction = `Proses deep cleaning, deoksidasi, atau repair sedang berlangsung di workstation teknisi.`;
       break;
 
     case 'DRYING_DETAILING':
       headerTitle = '🌬️ PENGERINGAN & QC FINAL';
-      statusDetail = `Pencucian selesai! Sepatu sedang dalam ruang pengeringan bersuhu sejuk (no-direct-UV) serta penyemprotan anti-bakteri deodorizer dan detailing sol.`;
+      statusDetail = `Pencucian selesai! Sepatu sedang dalam ruang pengeringan bersuhu sejuk steril UV dan aplikasi finishing protector.`;
       nextAction = `Estimasi siap: *${order.estimatedCompletion}*.`;
       break;
 
     case 'READY_PICKUP_DELIVERY':
-      headerTitle = '🎉 SEPATU SELESAI & SIAP DIAMBIL!';
-      statusDetail = `Kabar gembira! Sepatu *${order.shoe.brand} ${order.shoe.model}* sudah 100% bersih, wangi, dan lolos Quality Control (QC) ShoeLab!`;
+      headerTitle = '🎉 SEPATU SELESAI & SIAP DIAMBIL/KIRIM';
+      statusDetail = `Sepatu *${order.shoe.brand} ${order.shoe.model}* sudah 100% bersih, wangi, dan lolos Quality Control (QC) ShoeLab!`;
       nextAction = order.deliveryMethod === 'drop_off'
-        ? `Silakan ambil di outlet kami dengan menunjukkan nomor resi ini kepada kasir studio.`
-        : `Kurir kami segera mengantarkan sepatu langsung ke alamat Anda. Pastikan penerima dapat dihubungi.`;
+        ? `Siap diserahkan saat customer datang ke kasir studio.`
+        : `Siap diserahkan ke kurir untuk pengantaran ke alamat customer.`;
       break;
 
     case 'COMPLETED':
-      headerTitle = '🙏 TERIMA KASIH ATAS KEPERCAYAAN ANDA';
-      statusDetail = `Pengerjaan pesanan *${order.orderNumber}* telah tuntas diserahkan. Kami memberikan *Garansi Kepuasan 48 Jam*.`;
-      nextAction = `Bagikan ulasan dan foto sepatu bersih Anda untuk mendapatkan voucher potongan 15% pada servis berikutnya!`;
+      headerTitle = '🙏 TRANSAKSI PENGERJAAN TUNTAS';
+      statusDetail = `Pengerjaan pesanan *${order.orderNumber}* telah tuntas diserahkan kepada customer. Garansi kepuasan 48 jam aktif.`;
+      nextAction = `Status pesanan ditandai COMPLETED di database studio.`;
       break;
 
     case 'CANCELLED':
       headerTitle = '⚠️ PEMBATALAN PESANAN';
-      statusDetail = `Pesanan antrean *${order.orderNumber}* telah dibatalkan sesuai permintaan.`;
-      nextAction = `Jika ada kekeliruan, silakan hubungi customer support kami.`;
+      statusDetail = `Pesanan antrean *${order.orderNumber}* telah dibatalkan.`;
+      nextAction = `Data antrean telah diperbarui.`;
       break;
   }
 
-  const message = 
-`*${headerTitle}*
+  if (forAdmin) {
+    return `*🔔 UPDATE STATUS OPERASIONAL WORKSHOP*
+*${storeName} (ADMIN REPORT)*
+━━━━━━━━━━━━━━━━━━
+Halo Tim Admin & Workshop,
+
+Terdapat pembaruan status pengerjaan sepatu berikut:
+
+📌 *Detail Pesanan:*
+• No. Resi: *${order.orderNumber}*
+• Status Terkini: *${headerTitle}*
+• Customer: *${order.customer.name}* (WA: ${order.customer.whatsapp})
+• Sepatu: *${order.shoe.brand} ${order.shoe.model}* (${order.shoe.material})
+• Layanan: *${order.serviceName}*
+• Metode: *${order.deliveryMethod === 'drop_off' ? 'Drop-off Studio' : 'Pickup & Delivery'}*
+• Total Biaya: *Rp ${order.totalPrice.toLocaleString('id-ID')}* (${order.paymentStatus === 'PAID' ? '✅ Lunas' : '⏳ Belum Lunas'})
+• Teknisi: *${order.technicianName}*
+• Estimasi Selesai: *${order.estimatedCompletion}*
+
+📝 *Keterangan Progres:*
+${statusDetail}
+${nextAction}
+
+🔍 *Lacak Detail Order & Foto QC:*
+${trackingUrl}
+
+_Pesan otomatis sistem operasional ShoeLab Studio._`;
+  }
+
+  return `*${headerTitle}*
 *${storeName}*
 ━━━━━━━━━━━━━━━━━━
 Halo Kak *${order.customer.name}*,
@@ -129,8 +166,6 @@ ${trackingUrl}
 
 Ada pertanyaan? Balas pesan ini kapan saja.
 _Pelayanan terbaik untuk sepatu kesayangan Anda._ ✨`;
-
-  return message;
 }
 
 /**

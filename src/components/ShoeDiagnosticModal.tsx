@@ -66,6 +66,22 @@ const COMMON_ISSUES: IssueOption[] = [
     icon: '🛡️',
     recommendedServiceId: 'srv-sole-protector',
     recommendedAddonName: 'Water Repellent Nano Shield'
+  },
+  {
+    id: 'issue-hydrolysis',
+    title: 'Sol Remuk / Hidrolisis Lapuk',
+    desc: 'Busa midsole hancur menjadi bubuk atau retak parah termakan usia. Perlu operasi ganti unit sol donor baru.',
+    icon: '⚡',
+    recommendedServiceId: 'srv-sole-swap',
+    recommendedAddonName: 'Shoe Tree Pelindung Bentuk'
+  },
+  {
+    id: 'issue-heel-drag',
+    title: 'Tumit Terkikis Miring / Heel Drag',
+    desc: 'Karet sol bagian belakang tumit habis tergerus aspal membuat langkah miring dan tidak seimbang.',
+    icon: '📐',
+    recommendedServiceId: 'srv-heel-rebuild',
+    recommendedAddonName: 'Nano Shield Water Repellent'
   }
 ];
 
